@@ -7,8 +7,10 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // AssetBuilderInterface defines how the builder is used
@@ -85,6 +87,11 @@ func (b *AssetBuilder) ClearFiles() {
 
 // Save processes the added assets and generates the data and index files.
 func (b *AssetBuilder) Save(destPath string, baseName string) error {
+
+	if err := os.MkdirAll(destPath, 0755); err != nil {
+		return fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
 	maxBytes := b.MaxDataSize * 1024 * 1024
 
 	index := make(map[string]AssetEntry)
@@ -250,6 +257,86 @@ func (b *AssetBuilder) copyWithXOR(srcPath string, dest *os.File) error {
 		}
 	}
 	return nil
+}
+
+// AddFolder recursively scans a directory and adds files matching
+// the allowed extensions.
+//
+// It replaces the base of the physical path with the logical rebasePath.
+//
+// Example:
+//
+// folderPath:  "./assets/images"
+// extensions:  []string{"jpg", "png"}
+// rebasePath:  "images"
+//
+// A file located at "./assets/images/bg.png" will be stored in the index
+// with the key "images/bg.png".
+func (b *AssetBuilder) AddFolder(folderPath string, extensions []string, rebasePath string) error {
+	// If the extension list is empty, allow all files.
+	allowAll := len(extensions) == 0
+
+	// Prepare a map for fast extension lookup (lowercase).
+	allowedExt := make(map[string]bool)
+
+	for _, ext := range extensions {
+		// Clean the extension by removing dots or asterisks
+		// in case the user included them.
+		cleanExt := strings.ToLower(strings.TrimPrefix(strings.TrimPrefix(ext, "*"), "."))
+		allowedExt[cleanExt] = true
+	}
+
+	// Walk through the physical directory.
+	err := filepath.WalkDir(folderPath, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Ignore directories.
+		if d.IsDir() {
+			return nil
+		}
+
+		if !allowAll {
+			// Check the file extension.
+			fileExt := strings.ToLower(
+				strings.TrimPrefix(filepath.Ext(path), "."),
+			)
+
+			if !allowedExt[fileExt] {
+				return nil // Ignore this file.
+			}
+		}
+
+		// Compute the logical path (alias).
+		//
+		// Example:
+		// path       = "./assets/images/bg.png"
+		// folderPath = "./assets/images"
+		// relPath    = "bg.png"
+		relPath, err := filepath.Rel(folderPath, path)
+		if err != nil {
+			return err
+		}
+
+		// Replace Windows path separators (\) with forward slashes (/).
+		relPath = filepath.ToSlash(relPath)
+
+		// Build the final key: "images/bg.png".
+		var logicalKey string
+		if rebasePath != "" {
+			logicalKey = rebasePath + "/" + relPath
+		} else {
+			logicalKey = relPath
+		}
+
+		// Add the asset using its logical alias.
+		b.AppendAsset(path, logicalKey)
+
+		return nil
+	})
+
+	return err
 }
 
 // calculateChecksum reads a file and returns its SHA256 hash.

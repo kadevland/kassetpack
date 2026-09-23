@@ -1,0 +1,60 @@
+name: Release
+
+# This workflow runs ONLY when a tag starting with "v" is pushed
+# (e.g. vx.y.z).
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  # Allows the workflow to create a GitHub Release.
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the source code.
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Go.
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'stable'
+
+      # Get the tag name (e.g. vx.y.z) so it can be injected
+      # into the CLI version.
+      - name: Get Version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF_NAME}" >> $GITHUB_OUTPUT
+
+      # Cross-compile binaries for all supported platforms.
+      - name: Build Binaries
+        run: make release VERSION=${{ github.ref_name }}
+
+      # Create the GitHub Release and upload the binaries.
+      - name: Create GitHub Release and Upload Assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: kassetpack_*
+          body: |
+            ## KAssetPack ${{ github.ref_name }}
+
+            Download the executable for your system:
+
+            - **Windows**: `kassetpack_windows_amd64.exe`
+            - **Linux**: `kassetpack_linux_amd64`
+            - **macOS (Intel)**: `kassetpack_darwin_amd64`
+            - **macOS (Apple Silicon)**: `kassetpack_darwin_arm64`
+
+            ### Installation
+
+            1. Download the appropriate binary.
+            2. On macOS/Linux, make it executable:
+               `chmod +x kassetpack_*`
+            3. Move it somewhere in your `PATH`, for example:
+               `/usr/local/bin/`
