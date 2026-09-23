@@ -36,15 +36,19 @@ jobs:
       - name: Build Binaries
         run: make release VERSION=${{ github.ref_name }}
 
+      - name: List release files
+        run: find ./build -maxdepth 1 -type f -print
+
       # Create the GitHub Release and upload the binaries.
       - name: Create GitHub Release and Upload Assets
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            kassetpack_windows_amd64.exe
-            kassetpack_linux_amd64
-            kassetpack_darwin_amd64
-            kassetpack_darwin_arm64
+            build/kassetpack_windows_amd64.exe
+            build/kassetpack_linux_amd64
+            build/kassetpack_darwin_amd64
+            build/kassetpack_darwin_arm64
+          fail_on_unmatched_files: true            
           body: |
             ## KAssetPack ${{ github.ref_name }}
 
