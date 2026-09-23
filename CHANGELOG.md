@@ -16,6 +16,29 @@ KAssetPack follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.11.2] - 2026-09-23
+
+### Fixed
+
+- Fix release asset paths to use the `build/` directory.
+- Prevent releases from being published when expected binaries are missing.
+- Add release artifact listing to simplify CI diagnostics.
+
+### Changed
+
+- Configure the release workflow to explicitly upload:
+  - `kassetpack_windows_amd64.exe`
+  - `kassetpack_linux_amd64`
+  - `kassetpack_darwin_amd64`
+  - `kassetpack_darwin_arm64`
+
+### Backward Compatibility
+
+This release does not introduce any changes to the KAssetPack public API.
+
+No breaking changes are introduced in v0.11.2.
+
+
 ## [0.11.1] - 2026-09-23
 
 ### Fixed
