@@ -16,6 +16,15 @@ KAssetPack follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [0.11.1] - 2026-09-23
+
+### Fixed
+
+- Fix GitHub Release asset publishing with immutable releases.
+- Prevent unintended files such as `kassetpack_test.go` from being included as release assets.
+- Update `softprops/action-gh-release` to v3 for Node.js 24 support.
+
+
 ## [0.11.0] - 2026-09-23
 
 ### Added
