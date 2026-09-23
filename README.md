@@ -2,6 +2,10 @@
 
 **Lightweight asset packaging for Go applications and games.**
 
+<p align="center">
+  <img src="./docs/images/kassetpack-poster.png" alt="KAssetPack - Lightweight Asset Packaging for Go Games" width="600">
+</p>
+
 KAssetPack packages your assets into a compact index and one or more data files, with optional XOR obfuscation and automatic deduplication.
 
 Instead of distributing an exposed asset directory:
@@ -183,6 +187,144 @@ if err != nil {
 
 ---
 
+# CLI Tool
+
+KAssetPack includes a command-line tool for building and extracting asset packs without writing any Go code.
+
+## 1. Build the CLI
+
+You can build the CLI locally using the provided `Makefile`:
+
+```bash
+# Build for your current platform
+make build
+
+# Build release binaries for all supported platforms
+make release VERSION=v0.2.0
+```
+
+The executable is generated in the `build/` directory.
+
+On Linux and macOS:
+
+```text
+build/
+└── kassetpack
+```
+
+On Windows:
+
+```text
+build/
+└── kassetpack.exe
+```
+
+---
+
+## 2. Build an Asset Pack
+
+Use the `build` command to package a directory into `.kdx` and `.kdt` files.
+
+### Pack all files
+
+```bash
+./build/kassetpack build \
+    -path ./assets \
+    -out ./game_data \
+    -name core
+```
+
+### Pack specific file types
+
+```bash
+./build/kassetpack build \
+    -path ./assets \
+    -ext "*.png,*.ogg" \
+    -base "game" \
+    -key "MySecretKey" \
+    -name core
+```
+
+This can produce:
+
+```text
+game_data/
+├── core.kdx
+├── core.kdt
+└── core_01.kdt
+```
+
+### Build Flags
+
+| Flag | Description | Default |
+|---|---|---|
+| `-path` | Source directory to package | `./assets` |
+| `-ext` | Comma-separated extensions such as `"*.png,*.ogg"` | All files |
+| `-base` | Logical path prefix | Empty |
+| `-name` | Base name of the generated pack | `game` |
+| `-key` | Optional XOR obfuscation key | None |
+| `-size` | Maximum `.kdt` file size in MB | `600` |
+| `-out` | Output directory | `./build` |
+
+For example, using:
+
+```bash
+-base "game"
+```
+
+maps:
+
+```text
+./assets/images/player.png
+```
+
+to the logical asset key:
+
+```text
+game/images/player.png
+```
+
+> **Note:** The XOR key provides obfuscation, not encryption. Do not use it to protect sensitive information.
+
+---
+
+## 3. Unpack an Asset Pack
+
+The `unpack` command extracts the contents of an existing asset pack. This can be useful for debugging, testing, or inspecting generated packs.
+
+```bash
+./build/kassetpack unpack \
+    -pack ./game_data/core.kdx \
+    -key "MySecretKey" \
+    -out ./unpacked
+```
+
+### Unpack Flags
+
+| Flag | Description | Default |
+|---|---|---|
+| `-pack` | Path to the `.kdx` index file | Required |
+| `-key` | XOR key used when the pack was built | None |
+| `-out` | Extraction directory | `./unpacked` |
+
+---
+
+## 4. Global Flags
+
+Display the CLI help:
+
+```bash
+kassetpack -help
+```
+
+Display the current version:
+
+```bash
+kassetpack -version
+```
+
+---
+
 # Logical Paths and Aliases
 
 Physical files and runtime asset keys do not have to be the same.
@@ -191,28 +333,28 @@ For example:
 
 ```go
 builder.AppendAsset(
-    "/home/user/project/assets/characters/alice.png",
-    "characters/alice.png",
+    "./assets/images/player.png",
+    "sprites/player.png",
 )
 ```
 
 The physical file is:
 
 ```text
-/home/user/project/assets/characters/alice.png
+./assets/images/player.png
 ```
 
 but the application accesses it using:
 
 ```go
-bank.Read("characters/alice.png")
+bank.Read("sprites/player.png")
 ```
 
 This means the physical directory structure does not need to be exposed to the runtime.
 
 ---
 
-## Without an alias
+## Without an Alias
 
 The alias is optional.
 
@@ -493,6 +635,48 @@ builder.AppendAsset(
 The first parameter identifies the physical file.
 
 The optional second parameter defines the logical key stored in the index.
+
+---
+
+## `AddFolder`
+
+`AddFolder` recursively scans a directory and adds files matching the requested extensions.
+
+```go
+err := builder.AddFolder(
+    "./assets",
+    []string{"png", "jpg", "ogg"},
+    "game",
+)
+```
+
+The first argument is the physical directory to scan.
+
+The second argument contains the extensions to include. An empty list includes all files:
+
+```go
+err := builder.AddFolder(
+    "./assets",
+    []string{},
+    "game",
+)
+```
+
+The third argument defines the logical base path stored in the index.
+
+For example:
+
+```text
+./assets/images/player.png
+```
+
+with the logical base path `game` becomes:
+
+```text
+game/images/player.png
+```
+
+Directory scanning is recursive, so files inside subdirectories are included automatically.
 
 ---
 
@@ -852,7 +1036,9 @@ my-game/
 │   └── ...
 │
 ├── cmd/
-│   └── pack/
+│   └── kassetpack/
+│
+├── Makefile
 │
 ├── game/
 │
@@ -1005,6 +1191,9 @@ The test suite covers important packaging behaviors including:
 * data file splitting
 * multiple data files
 * large-scale deduplication
+* recursive folder scanning
+* extension filtering
+* CLI build and unpack workflows
 
 Example:
 
@@ -1060,6 +1249,8 @@ SetMaxDataSize(sizeInMB int64)
 AppendAsset(filePath string)
 
 AppendAsset(filePath string, logicalKey string)
+
+AddFolder(folderPath string, extensions []string, rebasePath string) error
 
 Save(destPath string, baseName string) error
 
