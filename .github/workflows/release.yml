@@ -34,15 +34,15 @@ jobs:
 
       # Cross-compile binaries for all supported platforms.
       - name: Build Binaries
-        run: make release VERSION=${{ steps.get_version.outputs.VERSION }}
+        run: make release VERSION=${{ github.ref_name }}
 
       # Create the GitHub Release and upload the binaries.
       - name: Create GitHub Release and Upload Assets
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: kassetpack_*
           body: |
-            ## KAssetPack ${{ steps.get_version.outputs.VERSION }}
+            ## KAssetPack ${{ github.ref_name }}
 
             Download the executable for your system:
 
