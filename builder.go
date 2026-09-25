@@ -54,7 +54,14 @@ type AssetBuilder struct {
 var _ AssetBuilderInterface = (*AssetBuilder)(nil)
 
 // NewAssetBuilder creates and returns a new AssetBuilder instance.
+//
+// Deprecated: use NewBuilder instead.
 func NewAssetBuilder() *AssetBuilder {
+	return NewBuilder()
+}
+
+// NewBuilder creates a new AssetBuilder.
+func NewBuilder() *AssetBuilder {
 	return &AssetBuilder{
 		MaxDataSize: DefaultMaxDataSize,
 	}
