@@ -35,7 +35,6 @@ KAssetPack follows [Semantic Versioning](https://semver.org/).
 
 - Updated the CLI, tests, and documentation to use `NewBuilder()`.
 
----
 
 ## [0.11.2] - 2026-09-23
 
