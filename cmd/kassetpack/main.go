@@ -98,7 +98,7 @@ func RunBuild(args []string) error {
 		return err
 	}
 
-	builder := kassetpack.NewAssetBuilder()
+	builder := kassetpack.NewBuilder()
 	builder.SetMaxDataSize(int64(*size))
 
 	if *key != "" {
