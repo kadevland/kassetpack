@@ -34,7 +34,7 @@ func TestNoAlias(t *testing.T) {
 	os.WriteFile(physicalPath, assetData, 0644)
 
 	// Use the Builder WITHOUT providing an alias (1 argument only)
-	builder := NewAssetBuilder()
+	builder := NewBuilder()
 	builder.SetXORKey(secretKey)
 	builder.AppendAsset(physicalPath) // <--- No alias provided
 
@@ -87,7 +87,7 @@ func TestBuildAndRead(t *testing.T) {
 
 	secretKey := generateRandomBytes(32)
 	// Use the Builder to create the pack
-	builder := NewAssetBuilder()
+	builder := NewBuilder()
 	builder.SetXORKey(secretKey)
 	builder.SetMaxDataSize(1) // Set a 1 MB limit for testing
 
@@ -149,7 +149,7 @@ func TestDeduplication(t *testing.T) {
 	os.WriteFile(filepath.Join(tempDir, "shared.txt"), sharedData, 0644)
 
 	secretKey := generateRandomBytes(32)
-	builder := NewAssetBuilder()
+	builder := NewBuilder()
 	builder.SetXORKey(secretKey)
 
 	// Add the SAME physical file, but with two different logical aliases
@@ -201,7 +201,7 @@ func TestSplitting(t *testing.T) {
 	os.WriteFile(filepath.Join(tempDir, "asset2.txt"), assetTwoData, 0644)
 
 	// Force the limit to 1 MB (1 * 1024 * 1024 bytes)
-	builder := NewAssetBuilder()
+	builder := NewBuilder()
 	builder.SetXORKey(secretKey)
 	builder.SetMaxDataSize(1)
 
@@ -288,7 +288,7 @@ func TestMassiveDeduplication(t *testing.T) {
 	fileInfo, _ := os.Stat(physicalPath)
 	expectedSize := fileInfo.Size()
 
-	builder := NewAssetBuilder()
+	builder := NewBuilder()
 	builder.SetXORKey(secretKey)
 
 	// Add the SAME file 20 times with different aliases

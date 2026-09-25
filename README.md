@@ -111,7 +111,7 @@ Runtime
 Create an `AssetBuilder` and add your files:
 
 ```go
-builder := kassetpack.NewAssetBuilder()
+builder := kassetpack.NewBuilder()
 
 builder.AppendAsset(
     "./assets/images/player.png",
@@ -385,7 +385,7 @@ Set a key on the builder:
 ```go
 key := []byte("my-secret-key")
 
-builder := kassetpack.NewAssetBuilder()
+builder := kassetpack.NewBuilder()
 builder.SetXORKey(key)
 ```
 
@@ -588,7 +588,7 @@ The complete deobfuscated asset does not need to be created in memory first.
 The builder is used when creating a pack.
 
 ```go
-builder := kassetpack.NewAssetBuilder()
+builder := kassetpack.NewBuilder()
 ```
 
 ## `SetXORKey`
@@ -930,7 +930,7 @@ import (
 )
 
 func main() {
-    builder := kassetpack.NewAssetBuilder()
+    builder := kassetpack.NewBuilder()
 
     builder.SetXORKey([]byte("my-secret-key"))
     builder.SetMaxDataSize(600)
@@ -1240,7 +1240,7 @@ The runtime API should be small enough to disappear into the rest of the applica
 ## Builder
 
 ```go
-NewAssetBuilder()
+NewBuilder()
 
 SetXORKey(key []byte)
 
