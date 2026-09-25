@@ -16,6 +16,27 @@ KAssetPack follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v0.11.3] - 2026-09-25
+
+### Added
+
+- Added the new `NewBuilder()` constructor as the recommended way to create an `AssetBuilder`.
+- Added a compile-time check to ensure `AssetBuilder` implements `AssetBuilderInterface`.
+
+### Fixed
+
+- Fixed `AssetBuilderInterface.AppendAsset` to support the optional alias and match the `AssetBuilder` implementation.
+
+### Deprecated
+
+- Deprecated `NewAssetBuilder()` in favor of `NewBuilder()`. It remains available for backward compatibility.
+
+### Changed
+
+- Updated the CLI, tests, and documentation to use `NewBuilder()`.
+
+---
+
 ## [0.11.2] - 2026-09-23
 
 ### Fixed
