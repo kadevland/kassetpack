@@ -22,7 +22,7 @@ type AssetBuilderInterface interface {
 	SetMaxDataSize(sizeInMB int64)
 
 	// AppendFile adds a file to the list of files to package
-	AppendAsset(filePath string)
+	AppendAsset(filePath string, alias ...string)
 
 	// Save processes the added files and generates the index and data files
 	Save(destPath string, baseName string) error
@@ -48,6 +48,10 @@ type AssetBuilder struct {
 	// État de configuration
 	assetToPack []assetFile
 }
+
+// Compile-time check that AssetBuilder implements AssetBuilderInterface.
+
+var _ AssetBuilderInterface = (*AssetBuilder)(nil)
 
 // NewAssetBuilder creates and returns a new AssetBuilder instance.
 func NewAssetBuilder() *AssetBuilder {
