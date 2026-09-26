@@ -270,3 +270,123 @@ func TestUnpackAssetWithXOR(t *testing.T) {
 		t.Errorf("unexpected extracted content: got %q, want %q", extracted, content)
 	}
 }
+
+func TestUnpack(t *testing.T) {
+	sourceDir := t.TempDir()
+	packDir := t.TempDir()
+	outputDir := t.TempDir()
+
+	assets := map[string][]byte{
+		"readme.txt":         []byte("hello kassetpack"),
+		"sprites/player.txt": []byte("player asset"),
+		"audio/music.txt":    []byte("music asset"),
+	}
+
+	builder := NewBuilder()
+
+	for path, content := range assets {
+		sourcePath := filepath.Join(sourceDir, filepath.Base(path))
+
+		if err := os.WriteFile(sourcePath, content, 0644); err != nil {
+			t.Fatalf("failed to create source file %s: %v", path, err)
+		}
+
+		builder.AppendAsset(sourcePath, path)
+	}
+
+	if err := builder.Save(packDir, "test_pack"); err != nil {
+		t.Fatalf("Save should not return an error: %v", err)
+	}
+
+	bank := NewBank()
+
+	if err := bank.Load(packDir, "test_pack", nil); err != nil {
+		t.Fatalf("Load should not return an error: %v", err)
+	}
+	defer bank.Close()
+
+	if err := bank.Unpack(outputDir); err != nil {
+		t.Fatalf("Unpack should not return an error: %v", err)
+	}
+
+	for path, expected := range assets {
+		extracted, err := os.ReadFile(filepath.Join(outputDir, path))
+		if err != nil {
+			t.Fatalf("failed to read extracted asset %s: %v", path, err)
+		}
+
+		if string(extracted) != string(expected) {
+			t.Errorf(
+				"unexpected content for %s: got %q, want %q",
+				path,
+				extracted,
+				expected,
+			)
+		}
+	}
+}
+
+func TestUnpackWithXOR(t *testing.T) {
+	sourceDir := t.TempDir()
+	packDir := t.TempDir()
+	outputDir := t.TempDir()
+
+	key := []byte("test-xor-key")
+
+	assets := map[string][]byte{
+		"hello.txt":          []byte("hello from xor"),
+		"sprites/player.txt": []byte("xor player asset"),
+	}
+
+	builder := NewBuilder()
+	builder.SetXORKey(key)
+
+	for path, content := range assets {
+		sourcePath := filepath.Join(sourceDir, filepath.Base(path))
+
+		if err := os.WriteFile(sourcePath, content, 0644); err != nil {
+			t.Fatalf("failed to create source file %s: %v", path, err)
+		}
+
+		builder.AppendAsset(sourcePath, path)
+	}
+
+	if err := builder.Save(packDir, "test_pack"); err != nil {
+		t.Fatalf("Save should not return an error: %v", err)
+	}
+
+	bank := NewBank()
+
+	if err := bank.Load(packDir, "test_pack", key); err != nil {
+		t.Fatalf("Load should not return an error: %v", err)
+	}
+	defer bank.Close()
+
+	if err := bank.Unpack(outputDir); err != nil {
+		t.Fatalf("Unpack should not return an error: %v", err)
+	}
+
+	for path, expected := range assets {
+		extracted, err := os.ReadFile(filepath.Join(outputDir, path))
+		if err != nil {
+			t.Fatalf("failed to read extracted asset %s: %v", path, err)
+		}
+
+		if string(extracted) != string(expected) {
+			t.Errorf(
+				"unexpected content for %s: got %q, want %q",
+				path,
+				extracted,
+				expected,
+			)
+		}
+	}
+}
+
+func TestUnpackEmptyBank(t *testing.T) {
+	bank := NewBank()
+
+	if err := bank.Unpack(t.TempDir()); err != nil {
+		t.Fatalf("Unpack should not return an error for an empty bank: %v", err)
+	}
+}

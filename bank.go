@@ -32,6 +32,9 @@ type AssetBankInterface interface {
 	// UnpackAsset extracts a single asset from the bank to the specified output directory.
 	UnpackAsset(path string, outputDir string) error
 
+	// Unpack extracts all assets from the bank to the specified output directory.
+	Unpack(outputDir string) error
+
 	// Close safely closes all opened data files
 	// It should be called when the game shuts down.
 	Close() error
@@ -222,6 +225,17 @@ func (bank *AssetBank) UnpackAsset(path string, outputDir string) error {
 	}
 
 	return closeErr
+}
+
+// Unpack extracts all assets from the bank to the specified output directory.
+func (bank *AssetBank) Unpack(outputDir string) error {
+	for path := range bank.Index {
+		if err := bank.UnpackAsset(path, outputDir); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 // Close safely closes all opened data files.

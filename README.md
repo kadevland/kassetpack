@@ -822,6 +822,40 @@ When XOR obfuscation is enabled, the asset is deobfuscated automatically during 
 
 ---
 
+## `Unpack`
+
+```go
+err := bank.Unpack("./output")
+```
+
+Extracts all assets from the bank to the specified output directory.
+
+Each asset keeps its logical path and directory structure.
+
+For example, a bank containing:
+
+```text
+images/player.png
+images/background.png
+audio/music.ogg
+```
+
+is extracted as:
+
+```text
+./output/
+├── images/
+│   ├── player.png
+│   └── background.png
+└── audio/
+    └── music.ogg
+```
+
+Assets are streamed directly from the bank to their destination files.
+
+When XOR obfuscation is enabled, assets are deobfuscated automatically during extraction.
+
+---
 
 ## `Close`
 
