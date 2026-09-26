@@ -147,7 +147,7 @@ The second argument is the **logical key** used by the application at runtime.
 At runtime:
 
 ```go
-bank := kassetpack.NewBank()
+bank := &kassetpack.AssetBank{}
 
 err := bank.Load(".", "game", nil)
 if err != nil {
@@ -394,7 +394,7 @@ The generated data is then stored obfuscated.
 The same key must be supplied when loading the pack:
 
 ```go
-bank := kassetpack.NewBank()
+bank := &kassetpack.AssetBank{}
 
 err := bank.Load(".", "game", key)
 if err != nil {
@@ -722,15 +722,13 @@ This allows the same builder instance to be reused with the same configuration.
 
 # AssetBank
 
-`AssetBank` is the runtime side of KAssetPack. It loads the generated index and provides access to packaged assets.
-
-Create a new asset bank using `NewBank`:
+`AssetBank` is the runtime side of KAssetPack.
 
 ```go
-bank := kassetpack.NewBank()
+bank := &kassetpack.AssetBank{}
 ```
 
-The returned bank is initialized and ready to load an asset pack.
+It loads the generated index and provides access to the packaged assets.
 
 ---
 
@@ -794,69 +792,6 @@ This is useful for large assets or APIs that can consume an `io.Reader`.
 
 ---
 
-## `UnpackAsset`
-
-```go
-err := bank.UnpackAsset("images/player.png", "./output")
-```
-
-Extracts a single asset from the bank to the specified output directory.
-
-The asset keeps its logical path inside the output directory.
-
-For example:
-
-```text
-images/player.png
-```
-
-is extracted to:
-
-```text
-./output/images/player.png
-```
-
-The asset is streamed directly from the bank to the destination file.
-
-When XOR obfuscation is enabled, the asset is deobfuscated automatically during extraction.
-
----
-
-## `Unpack`
-
-```go
-err := bank.Unpack("./output")
-```
-
-Extracts all assets from the bank to the specified output directory.
-
-Each asset keeps its logical path and directory structure.
-
-For example, a bank containing:
-
-```text
-images/player.png
-images/background.png
-audio/music.ogg
-```
-
-is extracted as:
-
-```text
-./output/
-├── images/
-│   ├── player.png
-│   └── background.png
-└── audio/
-    └── music.ogg
-```
-
-Assets are streamed directly from the bank to their destination files.
-
-When XOR obfuscation is enabled, assets are deobfuscated automatically during extraction.
-
----
-
 ## `Close`
 
 ```go
@@ -868,7 +803,7 @@ Closes resources associated with the asset bank.
 A typical usage is:
 
 ```go
-bank := kassetpack.NewBank()
+bank := &kassetpack.AssetBank{}
 
 if err := bank.Load(".", "game", key); err != nil {
     return err
@@ -1046,7 +981,7 @@ import (
 func main() {
     key := []byte("my-secret-key")
 
-    bank := kassetpack.NewBank()
+    bank := &kassetpack.AssetBank{}
 
     if err := bank.Load("./build", "game", key); err != nil {
         log.Fatal(err)
@@ -1493,7 +1428,7 @@ import "github.com/kadevland/kassetpack"
 
 // NewAssetBank creates the production asset bank.
 func NewAssetBank() AssetBankInterface {
-    return kassetpack.NewBank()
+    return &kassetpack.AssetBank{}
 }
 ```
 
