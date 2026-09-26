@@ -147,7 +147,7 @@ The second argument is the **logical key** used by the application at runtime.
 At runtime:
 
 ```go
-bank := &kassetpack.AssetBank{}
+bank := kassetpack.NewBank()
 
 err := bank.Load(".", "game", nil)
 if err != nil {

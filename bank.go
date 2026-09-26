@@ -47,14 +47,36 @@ type AssetBank struct {
 	locker sync.Mutex // Readability over conventions!
 }
 
+// NewBank creates and initializes a new AssetBank.
+func NewBank() *AssetBank {
+	bank := &AssetBank{}
+	bank.reset()
+
+	return bank
+}
+
+// reset restores the bank to a clean, initialized state.
+func (bank *AssetBank) reset() {
+	bank.BasePath = ""
+	bank.BaseName = ""
+	bank.XORKey = nil
+	bank.Index = make(map[string]AssetEntry)
+	bank.Files = make(map[int]*os.File)
+}
+
 // Load initializes the bank by reading the index file.
 // It maps the logical asset paths to their physical location in the data files.
 func (bank *AssetBank) Load(basePath string, baseName string, xorKey []byte) error {
+
+	if err := bank.Close(); err != nil {
+		return err
+	}
+
+	bank.reset()
+
 	bank.BasePath = basePath
 	bank.BaseName = baseName
 	bank.XORKey = xorKey
-	bank.Index = make(map[string]AssetEntry)
-	bank.Files = make(map[int]*os.File)
 
 	// Read the encrypted index file
 	idxPath := filepath.Join(basePath, baseName+IndexFileExt)
