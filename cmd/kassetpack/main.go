@@ -150,39 +150,18 @@ func RunUnpack(args []string) error {
 	file := filepath.Base(*packPath)
 	baseName := strings.TrimSuffix(file, filepath.Ext(file))
 
-	bank := &kassetpack.AssetBank{}
+	bank := kassetpack.NewBank()
 
 	if err := bank.Load(dir, baseName, []byte(*key)); err != nil {
 		return fmt.Errorf("X failed to load pack: %w", err)
 	}
 	defer bank.Close()
 
-	if err := os.MkdirAll(*outDir, 0755); err != nil {
-		return fmt.Errorf("X failed to create output directory: %w", err)
+	if err := bank.Unpack(*outDir); err != nil {
+		return fmt.Errorf("X failed to unpack: %w", err)
 	}
 
-	count := 0
-
-	for filePath := range bank.Index {
-		data, err := bank.Read(filePath)
-		if err != nil {
-			continue // Ignore decryption/read errors.
-		}
-
-		fullPath := filepath.Join(*outDir, filePath)
-
-		if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
-			return fmt.Errorf("X failed to create directory for %s: %w", filePath, err)
-		}
-
-		if err := os.WriteFile(fullPath, data, 0644); err != nil {
-			return fmt.Errorf("X failed to write %s: %w", filePath, err)
-		}
-
-		count++
-	}
-
-	fmt.Printf("Unpack completed successfully! %d files extracted\n", count)
+	fmt.Printf("Unpack completed successfully! %d files extracted\n", len(bank.Index))
 
 	return nil
 }
