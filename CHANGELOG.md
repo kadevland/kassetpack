@@ -16,6 +16,21 @@ KAssetPack follows [Semantic Versioning](https://semver.org/).
 
 ---
 
+## [v0.12.0] - 2026-09-26
+
+### Added
+
+- Added `NewBank()` constructor for creating initialized asset banks.
+- Added `UnpackAsset()` for extracting individual assets while preserving their logical paths.
+- Added `Unpack()` for extracting complete asset banks.
+
+### Changed
+
+- Updated the CLI `unpack` command to use `AssetBank.Unpack()`.
+- Asset extraction now uses streaming through `Open()` and `io.Copy()`.
+- Updated documentation and examples for the AssetBank API.
+
+
 ## [v0.11.3] - 2026-09-25
 
 ### Added
@@ -107,7 +122,6 @@ This release is backward compatible with the previous public API.
 
 No breaking changes are introduced in v0.11.0.
 
----
 
 ## [0.10.0] - 2026-09-17
 
