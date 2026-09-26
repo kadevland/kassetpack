@@ -29,12 +29,6 @@ type AssetBankInterface interface {
 	// without loading the entire file into RAM.
 	Open(path string) (io.ReadCloser, error)
 
-	// UnpackAsset extracts a single asset from the bank to the specified output directory.
-	UnpackAsset(path string, outputDir string) error
-
-	// Unpack extracts all assets from the bank to the specified output directory.
-	Unpack(outputDir string) error
-
 	// Close safely closes all opened data files
 	// It should be called when the game shuts down.
 	Close() error
@@ -53,36 +47,14 @@ type AssetBank struct {
 	locker sync.Mutex // Readability over conventions!
 }
 
-// NewBank creates and initializes a new AssetBank.
-func NewBank() *AssetBank {
-	bank := &AssetBank{}
-	bank.reset()
-
-	return bank
-}
-
-// reset restores the bank to a clean, initialized state.
-func (bank *AssetBank) reset() {
-	bank.BasePath = ""
-	bank.BaseName = ""
-	bank.XORKey = nil
-	bank.Index = make(map[string]AssetEntry)
-	bank.Files = make(map[int]*os.File)
-}
-
 // Load initializes the bank by reading the index file.
 // It maps the logical asset paths to their physical location in the data files.
 func (bank *AssetBank) Load(basePath string, baseName string, xorKey []byte) error {
-
-	if err := bank.Close(); err != nil {
-		return err
-	}
-
-	bank.reset()
-
 	bank.BasePath = basePath
 	bank.BaseName = baseName
 	bank.XORKey = xorKey
+	bank.Index = make(map[string]AssetEntry)
+	bank.Files = make(map[int]*os.File)
 
 	// Read the encrypted index file
 	idxPath := filepath.Join(basePath, baseName+IndexFileExt)
@@ -196,46 +168,6 @@ func (bank *AssetBank) Open(path string) (io.ReadCloser, error) {
 
 	// Wrap in NopCloser so it implements io.ReadCloser
 	return io.NopCloser(reader), nil
-}
-
-// UnpackAsset extracts a single asset from the bank to the specified output directory.
-func (bank *AssetBank) UnpackAsset(path string, outputDir string) error {
-	reader, err := bank.Open(path)
-	if err != nil {
-		return err
-	}
-	defer reader.Close()
-
-	outputPath := filepath.Join(outputDir, path)
-
-	if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
-		return err
-	}
-
-	file, err := os.Create(outputPath)
-	if err != nil {
-		return err
-	}
-
-	_, copyErr := io.Copy(file, reader)
-	closeErr := file.Close()
-
-	if copyErr != nil {
-		return copyErr
-	}
-
-	return closeErr
-}
-
-// Unpack extracts all assets from the bank to the specified output directory.
-func (bank *AssetBank) Unpack(outputDir string) error {
-	for path := range bank.Index {
-		if err := bank.UnpackAsset(path, outputDir); err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 // Close safely closes all opened data files.
