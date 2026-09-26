@@ -29,6 +29,9 @@ type AssetBankInterface interface {
 	// without loading the entire file into RAM.
 	Open(path string) (io.ReadCloser, error)
 
+	// UnpackAsset extracts a single asset from the bank to the specified output directory.
+	UnpackAsset(path string, outputDir string) error
+
 	// Close safely closes all opened data files
 	// It should be called when the game shuts down.
 	Close() error
@@ -190,6 +193,35 @@ func (bank *AssetBank) Open(path string) (io.ReadCloser, error) {
 
 	// Wrap in NopCloser so it implements io.ReadCloser
 	return io.NopCloser(reader), nil
+}
+
+// UnpackAsset extracts a single asset from the bank to the specified output directory.
+func (bank *AssetBank) UnpackAsset(path string, outputDir string) error {
+	reader, err := bank.Open(path)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	outputPath := filepath.Join(outputDir, path)
+
+	if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
+		return err
+	}
+
+	file, err := os.Create(outputPath)
+	if err != nil {
+		return err
+	}
+
+	_, copyErr := io.Copy(file, reader)
+	closeErr := file.Close()
+
+	if copyErr != nil {
+		return copyErr
+	}
+
+	return closeErr
 }
 
 // Close safely closes all opened data files.
